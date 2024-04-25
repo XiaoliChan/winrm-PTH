@@ -10,6 +10,7 @@ Golang implement WinRM client with PTH (pass the hash)
 </li>
 <li><a href="#how-it-works">How it works?</a></li>
 <li><a href="#screenshots">Screenshots</a></li>
+<li><a href="#known-bugs">References</a></li>
 <li><a href="#references">References</a></li>
 </ol>
 
@@ -37,6 +38,9 @@ Why do we need `encryption.go`?
 ![image](https://github.com/XiaoliChan/winrm-PTH/assets/30458572/12f94519-6451-471d-9880-80eb4cd4fc28)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+## Known bugs
+- Hash + AllowUnencrypted="true" == Not working
 
 ## References
 - https://github.com/CalypsoSys/winrmntlm
