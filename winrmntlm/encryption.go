@@ -16,8 +16,9 @@ import (
 
 	ntlmhttp "main/winrmntlm/ntlmssp/http"
 
-	"github.com/masterzen/winrm"
-	"github.com/masterzen/winrm/soap"
+	"main/winrm"
+
+	"main/winrm/soap"
 )
 
 type Encryption struct {

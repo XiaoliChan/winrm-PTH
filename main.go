@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"os"
 
+	"main/winrm"
 	"main/winrmntlm"
 
-	"github.com/masterzen/winrm"
 	"golang.org/x/crypto/md4"
 	"golang.org/x/text/encoding/unicode"
 )
@@ -30,10 +30,11 @@ func runExec_winrmntlm(address string, port int, https bool, userName, ntlm stri
 	endpoint := winrm.NewEndpoint(address, port, https, true, nil, nil, nil, 0)
 
 	params := winrm.DefaultParameters
-	enc, _ := winrmntlm.NewEncryption("ntlm", userName, ntlm, endpoint) // true is means if password is hash, else false
+	enc, _ := winrmntlm.NewEncryption("ntlm", userName, ntlm, endpoint)
 	params.TransportDecorator = func() winrm.Transporter { return enc }
+	client, err := winrm.NewClientWithParameters(endpoint, userName, "111qqq...", params)
 
-	client, err := winrm.NewClientWithParameters(endpoint, userName, ntlm, params)
+	//client, err := winrm.NewClient(endpoint, userName, ntlm)
 	if err != nil {
 		fmt.Println(err)
 	}
