@@ -16,7 +16,6 @@ type Client struct {
 	defaultFlags       uint32
 	domain             string
 	password           string
-	pass_is_hash       bool
 	username           string
 	workstation        string
 	version            *Version
@@ -114,11 +113,10 @@ func SetDomain(domain string) func(*Client) error {
 	}
 }
 
-func SetUserInfo(username, password string, pass_is_hash bool) func(*Client) error {
+func SetUserInfo(username, password string) func(*Client) error {
 	return func(c *Client) error {
 		c.username = username
 		c.password = password
-		c.pass_is_hash = pass_is_hash
 		return nil
 	}
 }
@@ -190,7 +188,7 @@ func (c *Client) processChallengeMessage(input []byte, bindings *ChannelBindings
 		return nil, err
 	}
 
-	lmChallengeResponse, err := lmChallengeResponse(c.negotiatedFlags, c.compatibilityLevel, clientChallenge, c.username, c.password, c.domain, c.pass_is_hash, cm)
+	lmChallengeResponse, err := lmChallengeResponse(c.negotiatedFlags, c.compatibilityLevel, clientChallenge, c.username, c.password, c.domain, cm)
 	if err != nil {
 		return nil, err
 	}
@@ -200,7 +198,7 @@ func (c *Client) processChallengeMessage(input []byte, bindings *ChannelBindings
 		return nil, err
 	}
 
-	ntChallengeResponse, keyExchangeKey, err := ntChallengeResponse(c.negotiatedFlags, c.compatibilityLevel, clientChallenge, c.username, c.password, c.domain, c.pass_is_hash, cm, lmChallengeResponse, *targetInfo, bindings)
+	ntChallengeResponse, keyExchangeKey, err := ntChallengeResponse(c.negotiatedFlags, c.compatibilityLevel, clientChallenge, c.username, c.password, c.domain, cm, lmChallengeResponse, *targetInfo, bindings)
 	if err != nil {
 		return nil, err
 	}

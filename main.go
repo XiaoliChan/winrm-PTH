@@ -2,26 +2,38 @@ package main
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"os"
 
 	"main/winrmntlm"
 
 	"github.com/masterzen/winrm"
+	"golang.org/x/crypto/md4"
+	"golang.org/x/text/encoding/unicode"
 )
 
 func main() {
-	runExec_winrmntlm("192.168.183.253", 5985, false, "administrator", "e91d2eafde47de62c6c49a012b3a6af1") // works // unsupported action
+	plaintext := "111qqq..."
+	plaintext_, _ := unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM).NewEncoder().Bytes([]byte(plaintext))
+	ntlm := hex.EncodeToString(hashMD4(plaintext_))
+
+	/*
+		or
+		ntlm := "e91d2eafde47de62c6c49a012b3a6af1"
+	*/
+
+	runExec_winrmntlm("192.168.1.128", 5985, false, "administrator", ntlm) // works // unsupported action
 }
 
-func runExec_winrmntlm(address string, port int, https bool, userName string, password string) {
+func runExec_winrmntlm(address string, port int, https bool, userName, ntlm string) {
 	endpoint := winrm.NewEndpoint(address, port, https, true, nil, nil, nil, 0)
 
 	params := winrm.DefaultParameters
-	enc, _ := winrmntlm.NewEncryption("ntlm", userName, password, endpoint, true) // true is means if password is hash, else false
+	enc, _ := winrmntlm.NewEncryption("ntlm", userName, ntlm, endpoint) // true is means if password is hash, else false
 	params.TransportDecorator = func() winrm.Transporter { return enc }
 
-	client, err := winrm.NewClientWithParameters(endpoint, userName, password, params)
+	client, err := winrm.NewClientWithParameters(endpoint, userName, ntlm, params)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -42,4 +54,11 @@ func runExec_winrmntlm(address string, port int, https bool, userName string, pa
 	fmt.Println(stdOut)
 	fmt.Println(stdErr)
 	fmt.Println(exitCode)
+}
+
+func hashMD4(b []byte) []byte {
+	md4 := md4.New()
+	md4.Write(b)
+
+	return md4.Sum(nil)
 }

@@ -23,7 +23,6 @@ import (
 type Encryption struct {
 	username       string
 	password       string
-	pass_is_hash   bool
 	endpoint       *winrm.Endpoint
 	ntlm           *winrm.ClientNTLM
 	protocol       string
@@ -61,14 +60,13 @@ When using Encryption, there are three options available
 
     uses the most excellent NTLM library from https://github.com/bodgit/ntlmssp
 */
-func NewEncryption(protocol string, username string, password string, endpoint *winrm.Endpoint, pass_is_hash bool) (*Encryption, error) {
+func NewEncryption(protocol string, username string, password string, endpoint *winrm.Endpoint) (*Encryption, error) {
 	encryption := &Encryption{
-		username:     username,
-		password:     password,
-		pass_is_hash: pass_is_hash,
-		endpoint:     endpoint,
-		ntlm:         &winrm.ClientNTLM{},
-		protocol:     protocol,
+		username: username,
+		password: password,
+		endpoint: endpoint,
+		ntlm:     &winrm.ClientNTLM{},
+		protocol: protocol,
 	}
 
 	switch protocol {
@@ -105,7 +103,7 @@ func (e *Encryption) Post(client *winrm.Client, message *soap.SoapMessage) (stri
 		userName = e.username
 	}
 
-	e.ntlmClient, _ = ntlmssp.NewClient(ntlmssp.SetUserInfo(userName, e.password, e.pass_is_hash), ntlmssp.SetDomain(domain), ntlmssp.SetVersion(ntlmssp.DefaultVersion()))
+	e.ntlmClient, _ = ntlmssp.NewClient(ntlmssp.SetUserInfo(userName, e.password), ntlmssp.SetDomain(domain), ntlmssp.SetVersion(ntlmssp.DefaultVersion()))
 	e.ntlmhttp, _ = ntlmhttp.NewClient(e.httpClient, e.ntlmClient)
 
 	var err error

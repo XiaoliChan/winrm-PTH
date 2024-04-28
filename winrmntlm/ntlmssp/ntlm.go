@@ -53,18 +53,14 @@ func ntowfV1(password string) ([]byte, error) {
 	return hashMD4(b), nil
 }
 
-func ntowfV2(username, password, domain string, pass_is_hash bool) ([]byte, error) {
+func ntowfV2(username, password, domain string) ([]byte, error) {
 	var k []byte
 	m, err := utf16FromString(strings.ToUpper(username) + domain)
 	if err != nil {
 		return nil, err
 	}
 
-	if pass_is_hash {
-		k, err = hex.DecodeString(password)
-	} else {
-		k, err = ntowfV1(password)
-	}
+	k, err = hex.DecodeString(password)
 
 	if err != nil {
 		return nil, err
@@ -85,8 +81,8 @@ func lmV1Response(password string, serverChallenge []byte) ([]byte, error) {
 	return encryptDESL(lmHash, serverChallenge)
 }
 
-func lmV2Response(username, password, domain string, pass_is_hash bool, serverChallenge, clientChallenge []byte) ([]byte, error) {
-	ntlmHash, err := ntowfV2(username, password, domain, pass_is_hash)
+func lmV2Response(username, password, domain string, serverChallenge, clientChallenge []byte) ([]byte, error) {
+	ntlmHash, err := ntowfV2(username, password, domain)
 	if err != nil {
 		return nil, err
 	}
@@ -130,8 +126,8 @@ func ntlmV2Temp(timestamp []byte, clientChallenge []byte, targetInfo targetInfo)
 	return concat([]byte{0x01}, []byte{0x01}, zeroBytes(6), timestamp, clientChallenge, zeroBytes(4), b, zeroBytes(4)), nil
 }
 
-func ntlmV2Response(username, password, domain string, pass_is_hash bool, serverChallenge, clientChallenge []byte, timestamp []byte, targetInfo targetInfo) ([]byte, []byte, error) {
-	ntlmHash, err := ntowfV2(username, password, domain, pass_is_hash)
+func ntlmV2Response(username, password, domain string, serverChallenge, clientChallenge []byte, timestamp []byte, targetInfo targetInfo) ([]byte, []byte, error) {
+	ntlmHash, err := ntowfV2(username, password, domain)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -170,7 +166,7 @@ func ntlmV1ExchangeKey(flags uint32, sessionBaseKey []byte, serverChallenge []by
 	}
 }
 
-func lmChallengeResponse(flags uint32, level lmCompatibilityLevel, clientChallenge []byte, username, password, domain string, pass_is_hash bool, cm *challengeMessage) ([]byte, error) {
+func lmChallengeResponse(flags uint32, level lmCompatibilityLevel, clientChallenge []byte, username, password, domain string, cm *challengeMessage) ([]byte, error) {
 	switch {
 	case ntlmsspAnonymous.IsSet(flags):
 		return zeroBytes(1), nil
@@ -189,11 +185,11 @@ func lmChallengeResponse(flags uint32, level lmCompatibilityLevel, clientChallen
 		if _, ok := cm.TargetInfo.Get(msvAvTimestamp); ok {
 			return zeroBytes(24), nil
 		}
-		return lmV2Response(username, password, domain, pass_is_hash, cm.ServerChallenge[:], clientChallenge)
+		return lmV2Response(username, password, domain, cm.ServerChallenge[:], clientChallenge)
 	}
 }
 
-func ntChallengeResponse(flags uint32, level lmCompatibilityLevel, clientChallenge []byte, username, password, domain string, pass_is_hash bool, cm *challengeMessage, lmChallengeResponse []byte, targetInfo targetInfo, channelBindings *ChannelBindings) ([]byte, []byte, error) {
+func ntChallengeResponse(flags uint32, level lmCompatibilityLevel, clientChallenge []byte, username, password, domain string, cm *challengeMessage, lmChallengeResponse []byte, targetInfo targetInfo, channelBindings *ChannelBindings) ([]byte, []byte, error) {
 	switch {
 	case ntlmsspAnonymous.IsSet(flags):
 		return []byte{}, zeroBytes(md4.Size), nil
@@ -253,6 +249,6 @@ func ntChallengeResponse(flags uint32, level lmCompatibilityLevel, clientChallen
 			targetInfo.Set(msvChannelBindings, hashMD5(b))
 		}
 
-		return ntlmV2Response(username, password, domain, pass_is_hash, cm.ServerChallenge[:], clientChallenge, timestamp, targetInfo)
+		return ntlmV2Response(username, password, domain, cm.ServerChallenge[:], clientChallenge, timestamp, targetInfo)
 	}
 }
