@@ -13,8 +13,9 @@ import (
 
 	"main/winrm/soap"
 
-	"github.com/bodgit/ntlmssp"
-	ntlmhttp "github.com/bodgit/ntlmssp/http"
+	"main/winrmntlm/ntlmssp"
+
+	ntlmhttp "main/winrmntlm/ntlmssp/http"
 )
 
 type Encryption struct {

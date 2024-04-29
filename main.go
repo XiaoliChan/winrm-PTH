@@ -2,26 +2,27 @@ package main
 
 import (
 	"context"
-	"encoding/hex"
 	"fmt"
 	"os"
 
 	"main/winrm"
-	"main/winrmntlm"
 
 	"golang.org/x/crypto/md4"
-	"golang.org/x/text/encoding/unicode"
 )
 
 func main() {
-	plaintext := "111qqq..."
-	plaintext_, _ := unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM).NewEncoder().Bytes([]byte(plaintext))
-	ntlm := hex.EncodeToString(hashMD4(plaintext_))
+
+	/*
+		plaintext := "111qqq..."
+		plaintext_, _ := unicode.UTF16(unicode.LittleEndian, unicode.IgnoreBOM).NewEncoder().Bytes([]byte(plaintext))
+		ntlm := hex.EncodeToString(hashMD4(plaintext_))
+	*/
 
 	/*
 		or
 		ntlm := "e91d2eafde47de62c6c49a012b3a6af1"
 	*/
+	ntlm := "e91d2eafde47de62c6c49a012b3a6af1"
 
 	runExec_winrmntlm("192.168.1.128", 5985, false, "administrator", ntlm) // works // unsupported action
 }
@@ -30,11 +31,10 @@ func runExec_winrmntlm(address string, port int, https bool, userName, ntlm stri
 	endpoint := winrm.NewEndpoint(address, port, https, true, nil, nil, nil, 0)
 
 	params := winrm.DefaultParameters
-	enc, _ := winrmntlm.NewEncryption("ntlm", userName, ntlm, endpoint)
+	enc, _ := winrm.NewEncryption("ntlm")
 	params.TransportDecorator = func() winrm.Transporter { return enc }
-	client, err := winrm.NewClientWithParameters(endpoint, userName, "111qqq...", params)
+	client, err := winrm.NewClientWithParameters(endpoint, userName, ntlm, params)
 
-	//client, err := winrm.NewClient(endpoint, userName, ntlm)
 	if err != nil {
 		fmt.Println(err)
 	}

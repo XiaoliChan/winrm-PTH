@@ -11,8 +11,6 @@ import (
 	"time"
 
 	"main/winrm/soap"
-
-	"github.com/X1r0z/go-ntlmssp"
 )
 
 var soapXML = "application/soap+xml"
@@ -61,8 +59,7 @@ func (c *clientRequest) Transport(endpoint *Endpoint) error {
 	}
 
 	//nolint:gosec
-
-	http_transport := &http.Transport{
+	transport := &http.Transport{
 		Proxy: proxyfunc,
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: endpoint.Insecure,
@@ -78,13 +75,9 @@ func (c *clientRequest) Transport(endpoint *Endpoint) error {
 			return err
 		}
 
-		http_transport.TLSClientConfig.RootCAs = certPool
+		transport.TLSClientConfig.RootCAs = certPool
 	}
 
-	transport := ntlmssp.Negotiator{
-		RoundTripper: http_transport,
-		UsePth:       true,
-	}
 	c.transport = transport
 
 	return nil
@@ -100,9 +93,7 @@ func (c clientRequest) Post(client *Client, request *soap.SoapMessage) (string, 
 		return "", fmt.Errorf("impossible to create http request %w", err)
 	}
 	req.Header.Set("Content-Type", soapXML+";charset=UTF-8")
-	//req.SetBasicAuth(client.username, client.password)
-
-	fmt.Println(req.Header)
+	req.SetBasicAuth(client.username, client.password)
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("unknown error %w", err)
