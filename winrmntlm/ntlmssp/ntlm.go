@@ -54,13 +54,14 @@ func ntowfV1(password string) ([]byte, error) {
 }
 
 func ntowfV2(username, password, domain string) ([]byte, error) {
-	var k []byte
 	m, err := utf16FromString(strings.ToUpper(username) + domain)
 	if err != nil {
 		return nil, err
 	}
 
-	k, err = hex.DecodeString(password)
+	k, err := hex.DecodeString(password)
+
+	//k, err := ntowfV1(password)
 
 	if err != nil {
 		return nil, err
